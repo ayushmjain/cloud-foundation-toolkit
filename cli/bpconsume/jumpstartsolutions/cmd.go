@@ -108,7 +108,7 @@ func generateTextprotoFile(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) error {
 		return err
 	}
 
-	solutionName := bpObj.Spec.BlueprintInfo.Title
+	solutionName := bpObj.Spec.Info.Title
 	solutionId := strings.ReplaceAll(strings.ToLower(solutionName), " ", "_")
 	fileName := solutionId + ".textproto"
 	err = os.WriteFile(fileName, b, 0644)

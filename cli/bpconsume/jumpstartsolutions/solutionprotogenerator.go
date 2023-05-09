@@ -44,8 +44,8 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	if solution.GitSource == nil {
 		solution.GitSource = &gen_protos.GitSource{}
 	}
-	if bpObj.Spec.Source != nil {
-		solution.GitSource.Repo = strings.TrimSuffix(bpObj.Spec.Source.Repo, ".git")
+	if bpObj.Spec.Info.Source != nil {
+		solution.GitSource.Repo = strings.TrimSuffix(bpObj.Spec.Info.Source.Repo, ".git")
 	}
 
 	// Placeholders for fields that aren't available in OSS metadata
@@ -56,12 +56,12 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 // addDeploymentTimeEstimate adds the deployment time for the solution to the
 // solution object from the BlueprintMetadata object.
 func addDeploymentTimeEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
-	if bpObj.Spec.DeploymentDuration.ConfigurationSecs > 0 && bpObj.Spec.DeploymentDuration.DeploymentSecs > 0 {
+	if bpObj.Spec.Info.DeploymentDuration.ConfigurationSecs > 0 && bpObj.Spec.Info.DeploymentDuration.DeploymentSecs > 0 {
 		solution.DeploymentEstimate = &gen_protos.DeploymentEstimate{
 			// adding 59 (60 - 1) so that the result is ceiling after division.
 			// Using fast ceiling of integer division method.
-			ConfigurationMinutes: int32((bpObj.Spec.DeploymentDuration.ConfigurationSecs + 59) / 60),
-			DeploymentMinutes:    int32((bpObj.Spec.DeploymentDuration.DeploymentSecs + 59) / 60),
+			ConfigurationMinutes: int32((bpObj.Spec.Info.DeploymentDuration.ConfigurationSecs + 59) / 60),
+			DeploymentMinutes:    int32((bpObj.Spec.Info.DeploymentDuration.DeploymentSecs + 59) / 60),
 		}
 	}
 }
@@ -69,8 +69,8 @@ func addDeploymentTimeEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.
 // addCostEstimate adds the cost estimate for the solution to the solution
 // object from the BlueprintMetadata object.
 func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
-	if bpObj.Spec.CostEstimate.URL != "" {
-		solution.CostEstimateLink = bpObj.Spec.CostEstimate.URL
+	if bpObj.Spec.Info.CostEstimate.URL != "" {
+		solution.CostEstimateLink = bpObj.Spec.Info.CostEstimate.URL
 	}
 	solution.CostEstimateUsd = 1.0
 }
@@ -78,11 +78,11 @@ func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintM
 // addRoles adds the roles required by the service account deploying the
 // solution to the solution object from the BlueprintMetdata object.
 func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) error {
-	if len(bpObj.Spec.Roles) == 0 {
+	if len(bpObj.Spec.Requirements.Roles) == 0 {
 		return nil
 	}
 	projectRoleCount := 0
-	for _, bpRoles := range bpObj.Spec.Roles {
+	for _, bpRoles := range bpObj.Spec.Requirements.Roles {
 		if bpRoles.Level == "Project" {
 			projectRoleCount += 1
 		}
@@ -90,7 +90,7 @@ func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata
 	if projectRoleCount > 1 {
 		return fmt.Errorf("more than one set of project level roles present in OSS solution metadata")
 	}
-	for _, bpRoles := range bpObj.Spec.Roles {
+	for _, bpRoles := range bpObj.Spec.Requirements.Roles {
 		if bpRoles.Level == "Project" {
 			solution.DeployData.Roles = make([]string, len(bpRoles.Roles))
 			copy(solution.DeployData.Roles, bpRoles.Roles)
@@ -102,33 +102,33 @@ func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata
 // addApis adds the APIs required for deploying the solution to the solution
 // object from the BlueprintMetadata object.
 func addApis(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
-	if len(bpObj.Spec.Services) == 0 {
+	if len(bpObj.Spec.Requirements.Services) == 0 {
 		return
 	}
-	solution.DeployData.Apis = make([]string, len(bpObj.Spec.Services))
-	copy(solution.DeployData.Apis, bpObj.Spec.Services)
+	solution.DeployData.Apis = make([]string, len(bpObj.Spec.Requirements.Services))
+	copy(solution.DeployData.Apis, bpObj.Spec.Requirements.Services)
 }
 
 // addVariables adds terraform input variables to the solution object from
 // the BlueprintMetadata object.
 func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.BlueprintMetadata) {
-	if len(bpObj.Spec.BlueprintInterface.Variables) == 0 {
+	if len(bpObj.Spec.Interfaces.Variables) == 0 {
 		return
 	}
 	solution.DeployData.InputSections = []*gen_protos.Section{}
-	for _, variable := range bpObj.Spec.BlueprintInterface.Variables {
-		bpVariable := bpDpObj.Spec.BlueprintUI.Input.DisplayVariables[variable.Name]
+	for _, variable := range bpObj.Spec.Interfaces.Variables {
+		bpVariable := bpDpObj.Spec.UI.Input.Variables[variable.Name]
 		property := &gen_protos.Property{
 			Name:       variable.Name,
 			IsRequired: variable.Required,
-			IsHidden:   !bpVariable.Visible,
+			IsHidden:   bpVariable.Invisible,
 			Validation: bpVariable.RegExValidation,
 		}
 		switch variable.VarType {
 		case "string":
 			property.Type = gen_protos.Property_STRING
-			if variable.Default != nil {
-				property.DefaultValue = fmt.Sprintf("%v", variable.Default)
+			if variable.DefaultValue != nil {
+				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
 			property.Pattern = bpVariable.RegExValidation
 			property.MaxLength = int32(bpVariable.Maximum)
@@ -136,8 +136,8 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 
 		case "bool":
 			property.Type = gen_protos.Property_BOOLEAN
-			if variable.Default != nil {
-				property.DefaultValue = fmt.Sprintf("%v", variable.Default)
+			if variable.DefaultValue != nil {
+				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
 		case "list":
 			property.Type = gen_protos.Property_ARRAY
@@ -147,8 +147,8 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 			// Note: tf metadata uses "number" type for both "integer" and "number" type.
 			// Hence, this might require manual update of textproto file.
 			property.Type = gen_protos.Property_NUMBER
-			if variable.Default != nil {
-				property.DefaultValue = fmt.Sprintf("%v", variable.Default)
+			if variable.DefaultValue != nil {
+				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
 			property.Maximum = float32(bpVariable.Maximum)
 			property.Minimum = float32(bpVariable.Minimum)
@@ -162,11 +162,11 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 // addOutputs adds terraform outputs to the solution object from the
 // BlueprintMetadata object.
 func addOutputs(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
-	if len(bpObj.Spec.Outputs) == 0 {
+	if len(bpObj.Spec.Interfaces.Outputs) == 0 {
 		return
 	}
 	solution.DeployData.Links = []*gen_protos.DeploymentLink{}
-	for _, link := range bpObj.Spec.Outputs {
+	for _, link := range bpObj.Spec.Interfaces.Outputs {
 		solution.DeployData.Links = append(solution.DeployData.Links, &gen_protos.DeploymentLink{
 			OutputName: link.Name,
 		})

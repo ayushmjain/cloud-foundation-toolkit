@@ -32,14 +32,14 @@ func createDiagramDescription(steps []string, solutionName string) string {
 }
 
 func generateSoy(bpObj *bpmetadata.BlueprintMetadata) error {
-	solutionName := bpObj.Spec.BlueprintInfo.Title
+	solutionName := bpObj.Spec.Info.Title
 	solutionId := generateSolutionId(solutionName)
-	solutionTitle := bpObj.Spec.BlueprintInfo.Title
-	solutionSummary := bpObj.Spec.BlueprintInfo.Description.Tagline
-	solutionDescription := bpObj.Spec.BlueprintInfo.Description.Detailed
-	solutionDiagramSteps := bpObj.Spec.BlueprintInfo.Description.Architecture
+	solutionTitle := bpObj.Spec.Info.Title
+	solutionSummary := bpObj.Spec.Info.Description.Tagline
+	solutionDescription := bpObj.Spec.Info.Description.Detailed
+	solutionDiagramSteps := bpObj.Spec.Info.Description.Architecture
 	if len(solutionDiagramSteps) == 0 {
-		solutionDiagramSteps = bpObj.Spec.BlueprintContent.Architecture.Description
+		solutionDiagramSteps = bpObj.Spec.Content.Architecture.Description
 	}
 	solutionDiagramDescription := createDiagramDescription(solutionDiagramSteps, solutionName)
 
