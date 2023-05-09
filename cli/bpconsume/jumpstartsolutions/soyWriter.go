@@ -17,9 +17,12 @@ const (
 )
 
 func generateSolutionId(solutionName string) string {
-	return strings.ReplaceAll(strings.ToLower(solutionName), " ", "_")
+	return strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(solutionName), "-", "_"), " ", "_")
 }
 
+func generateReadableSolutionId(solutionId string) string {
+	return strings.ReplaceAll(solutionId, "_", "-")
+}
 func createDiagramDescription(steps []string, solutionName string) string {
 	var buffer bytes.Buffer
 	for iteration, step := range steps {
@@ -34,6 +37,7 @@ func createDiagramDescription(steps []string, solutionName string) string {
 func generateSoy(bpObj *bpmetadata.BlueprintMetadata) error {
 	solutionName := bpObj.Spec.Info.Title
 	solutionId := generateSolutionId(solutionName)
+	ingestionSolutionId := generateReadableSolutionId(solutionId)
 	solutionTitle := bpObj.Spec.Info.Title
 	solutionSummary := bpObj.Spec.Info.Description.Tagline
 	solutionDescription := bpObj.Spec.Info.Description.Detailed
@@ -43,7 +47,7 @@ func generateSoy(bpObj *bpmetadata.BlueprintMetadata) error {
 	}
 	solutionDiagramDescription := createDiagramDescription(solutionDiagramSteps, solutionName)
 
-	replacer := strings.NewReplacer("$SOLUTION_ID", solutionId, "$SOLUTION_NAME", solutionName, "$SOLUTION_TITLE", solutionTitle, "$SOLUTION_SUMMARY", solutionSummary, "$SOLUTION_DESCRIPTION", solutionDescription, "$DIAGRAM_DESCRIPTION", solutionDiagramDescription)
+	replacer := strings.NewReplacer("$INGESTION_ID", ingestionSolutionId, "$SOLUTION_ID", solutionId, "$SOLUTION_NAME", solutionName, "$SOLUTION_TITLE", solutionTitle, "$SOLUTION_SUMMARY", solutionSummary, "$SOLUTION_DESCRIPTION", solutionDescription, "$DIAGRAM_DESCRIPTION", solutionDiagramDescription)
 
 	input, err := ioutil.ReadFile("soy_template.soy")
 	if err != nil {
