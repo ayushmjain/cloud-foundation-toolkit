@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/GoogleCloudPlatform/cloud-foundation-toolkit/cli/bpmetadata"
 	"github.com/spf13/cobra"
@@ -109,7 +108,7 @@ func generateTextprotoFile(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) error {
 	}
 
 	solutionName := bpObj.Spec.Info.Title
-	solutionId := strings.ReplaceAll(strings.ToLower(solutionName), " ", "_")
+	solutionId := generateSolutionId(solutionName)
 	fileName := solutionId + ".textproto"
 	err = os.WriteFile(fileName, b, 0644)
 	if err != nil {
