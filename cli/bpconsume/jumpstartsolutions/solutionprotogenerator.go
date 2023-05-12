@@ -101,6 +101,9 @@ func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata
 			copy(solution.DeployData.Roles, bpRoles.Roles)
 		}
 	}
+	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/serviceusage.serviceUsageAdmin")
+	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/iam.serviceAccountAdmin")
+	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/resourcemanager.projectIamAdmin")
 	return nil
 }
 
@@ -112,6 +115,7 @@ func addApis(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata)
 	}
 	solution.DeployData.Apis = make([]string, len(bpObj.Spec.Requirements.Services))
 	copy(solution.DeployData.Apis, bpObj.Spec.Requirements.Services)
+	solution.DeployData.Apis = append(solution.DeployData.Apis, "config.googleapis.com")
 }
 
 // addVariables adds terraform input variables to the solution object from
