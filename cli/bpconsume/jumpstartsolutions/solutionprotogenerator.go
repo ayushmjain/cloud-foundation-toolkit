@@ -26,10 +26,10 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addApis(solution, bpObj)
 	addVariables(solution, bpObj, bpDpObj)
 	addOutputs(solution, bpObj)
+	addDocumentationLink(solution, bpObj)
 
 	addIconUrl(solution)
 	addDiagramUrl(solution)
-	addDocumentationLink(solution)
 	addIsSingleton(solution)
 	addLocationConfigs(solution)
 	addOrgPolicyChecks(solution)
@@ -48,9 +48,20 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 		solution.GitSource.Repo = strings.TrimSuffix(bpObj.Spec.Info.Source.Repo, ".git")
 	}
 
-	// Placeholders for fields that aren't available in OSS metadata
+	gitRepoSplit := strings.Split(solution.GitSource.Repo, "/")
+	gitRepoName := gitRepoSplit[len(gitRepoSplit)-1]
+
+	bpPathSplit := strings.Split(jssConsumptionFlags.bpPath, "/")
+	var solutionModulePath string
+
+	for i, dir := range bpPathSplit {
+		if dir == gitRepoName {
+			solutionModulePath = strings.Join(bpPathSplit[i+1:], "/")
+		}
+	}
+
+	solution.GitSource.Directory = solutionModulePath
 	solution.GitSource.Ref = "<Git branch or tag or commit hash>"
-	solution.GitSource.Directory = "<Subdirectory inside the repository>"
 }
 
 // addDeploymentTimeEstimate adds the deployment time for the solution to the
@@ -173,6 +184,13 @@ func addOutputs(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetada
 	}
 }
 
+// addDocumentationLink adds the URL of the solution's documentation page.
+func addDocumentationLink(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
+	if len(bpObj.Spec.Content.Documentation) > 0 {
+		solution.DocumentationLink = bpObj.Spec.Content.Documentation[0].URL
+	}
+}
+
 // addIconUrl adds the URL of the solution's icon image.
 func addIconUrl(solution *gen_protos.Solution) {
 	solution.IconUrl = "solution_icon.png"
@@ -181,11 +199,6 @@ func addIconUrl(solution *gen_protos.Solution) {
 // addDiagramUrl adds the URL of the solution's architecture diagram image.
 func addDiagramUrl(solution *gen_protos.Solution) {
 	solution.DiagramUrl = "solution_diagram.png"
-}
-
-// addDocumentationLink adds the URL of the solution's documentation page.
-func addDocumentationLink(solution *gen_protos.Solution) {
-	solution.DocumentationLink = "<cloud documentation link for the solution e.g. https://cloud.google.com/architecture/big-data-analytics/data-warehouse>"
 }
 
 // addIsSingleton adds whether the solution is a singleton or not.
