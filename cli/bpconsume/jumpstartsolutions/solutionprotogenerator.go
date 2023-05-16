@@ -57,6 +57,7 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	for i, dir := range bpPathSplit {
 		if dir == gitRepoName {
 			solutionModulePath = strings.Join(bpPathSplit[i+1:], "/")
+			break
 		}
 	}
 
