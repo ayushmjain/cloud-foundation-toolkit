@@ -8,6 +8,9 @@ import (
 	"github.com/GoogleCloudPlatform/cloud-foundation-toolkit/cli/bpmetadata"
 )
 
+var RequiredRoles = [...]string{"roles/serviceusage.serviceUsageAdmin", "roles/iam.serviceAccountAdmin", "roles/resourcemanager.projectIamAdmin"}
+var RequiredApis = [...]string{"config.googleapis.com"}
+
 // generateSolutionProto creates the Solution object from the BlueprintMetadata
 // object.
 func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_protos.Solution, error) {
@@ -80,6 +83,15 @@ func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintM
 	solution.CostEstimateUsd = 1.0
 }
 
+func containsInList(element string, list []string) bool {
+	for _, member := range list {
+		if member == element {
+			return true
+		}
+	}
+	return false
+}
+
 // addRoles adds the roles required by the service account deploying the
 // solution to the solution object from the BlueprintMetdata object.
 func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) error {
@@ -101,9 +113,11 @@ func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata
 			copy(solution.DeployData.Roles, bpRoles.Roles)
 		}
 	}
-	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/serviceusage.serviceUsageAdmin")
-	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/iam.serviceAccountAdmin")
-	solution.DeployData.Roles = append(solution.DeployData.Roles, "roles/resourcemanager.projectIamAdmin")
+	for _, role := range RequiredRoles {
+		if !containsInList(role, solution.DeployData.Roles) {
+			solution.DeployData.Roles = append(solution.DeployData.Roles, role)
+		}
+	}
 	return nil
 }
 
@@ -115,7 +129,11 @@ func addApis(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata)
 	}
 	solution.DeployData.Apis = make([]string, len(bpObj.Spec.Requirements.Services))
 	copy(solution.DeployData.Apis, bpObj.Spec.Requirements.Services)
-	solution.DeployData.Apis = append(solution.DeployData.Apis, "config.googleapis.com")
+	for _, api := range RequiredApis {
+		if !containsInList(api, solution.DeployData.Apis) {
+			solution.DeployData.Apis = append(solution.DeployData.Apis, api)
+		}
+	}
 }
 
 // addVariables adds terraform input variables to the solution object from
