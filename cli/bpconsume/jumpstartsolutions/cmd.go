@@ -102,6 +102,11 @@ func generateTextprotoFile(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) error {
 		return err
 	}
 
+	err = addOverlay(solution)
+	if err != nil {
+		return err
+	}
+
 	b, err := marshalOptions.Marshal(solution)
 	if err != nil {
 		return err
