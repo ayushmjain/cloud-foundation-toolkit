@@ -31,7 +31,6 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addIconUrl(solution)
 	addDiagramUrl(solution)
 	addIsSingleton(solution)
-	addLocationConfigs(solution)
 	addOrgPolicyChecks(solution)
 	addCloudProductIdentifiers(solution)
 
@@ -62,7 +61,6 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	}
 
 	solution.GitSource.Directory = solutionModulePath
-	solution.GitSource.Ref = "<Git branch or tag or commit hash>"
 }
 
 // addDeploymentTimeEstimate adds the deployment time for the solution to the
@@ -84,7 +82,6 @@ func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintM
 	if bpObj.Spec.Info.CostEstimate.URL != "" {
 		solution.CostEstimateLink = bpObj.Spec.Info.CostEstimate.URL
 	}
-	solution.CostEstimateUsd = 1.0
 }
 
 // addRoles adds the roles required by the service account deploying the
@@ -204,12 +201,8 @@ func addDiagramUrl(solution *gen_protos.Solution) {
 
 // addIsSingleton adds whether the solution is a singleton or not.
 func addIsSingleton(solution *gen_protos.Solution) {
+	// TODO: use this from blueprint metadata when this is available in it.
 	solution.DeployData.IsSingleton = true
-}
-
-// addLocationConfigs adds location configs to the solution object.
-func addLocationConfigs(solution *gen_protos.Solution) {
-	solution.DeployData.LocationConfigs = []gen_protos.DeployData_DeployLocationConfig{gen_protos.DeployData_UNSPECIFIED}
 }
 
 // addOrgPolicyChecks adds org policy checks to the solution object.
