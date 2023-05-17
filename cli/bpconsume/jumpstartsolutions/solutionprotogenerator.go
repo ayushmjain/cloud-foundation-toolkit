@@ -37,7 +37,7 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addLocationConfigs(solution)
 	addOrgPolicyChecks(solution, bpObj)
 	addCloudProductIdentifiers(solution, bpObj)
-	addNeosWalkThroughLnik(solution)
+	addNeosWalkThroughLink(solution)
 
 	return solution, nil
 }
@@ -66,10 +66,9 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	}
 
 	solution.GitSource.Directory = solutionModulePath
-	solution.GitSource.Ref = "<Git branch or tag or commit hash>"
 }
 
-func addNeosWalkThroughLnik(solution *gen_protos.Solution) {
+func addNeosWalkThroughLink(solution *gen_protos.Solution) {
 	solution.NeosWalkthroughLink = "<Add NeosLink here>"
 }
 
@@ -92,7 +91,6 @@ func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintM
 	if bpObj.Spec.Info.CostEstimate.URL != "" {
 		solution.CostEstimateLink = bpObj.Spec.Info.CostEstimate.URL
 	}
-	solution.CostEstimateUsd = 1.0
 }
 
 func containsInList(element string, list []string) bool {
@@ -231,12 +229,8 @@ func addDiagramUrl(solution *gen_protos.Solution) {
 
 // addIsSingleton adds whether the solution is a singleton or not.
 func addIsSingleton(solution *gen_protos.Solution) {
+	// TODO: use this from blueprint metadata when this is available in it.
 	solution.DeployData.IsSingleton = true
-}
-
-// addLocationConfigs adds location configs to the solution object.
-func addLocationConfigs(solution *gen_protos.Solution) {
-	solution.DeployData.LocationConfigs = []gen_protos.DeployData_DeployLocationConfig{gen_protos.DeployData_UNSPECIFIED}
 }
 
 // addOrgPolicyChecks adds org policy checks to the solution object.
