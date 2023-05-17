@@ -8,6 +8,9 @@ import (
 	"github.com/GoogleCloudPlatform/cloud-foundation-toolkit/cli/bpmetadata"
 )
 
+var RequiredRoles = [...]string{"roles/serviceusage.serviceUsageAdmin", "roles/iam.serviceAccountAdmin", "roles/resourcemanager.projectIamAdmin"}
+var RequiredApis = [...]string{"config.googleapis.com"}
+
 // generateSolutionProto creates the Solution object from the BlueprintMetadata
 // object.
 func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_protos.Solution, error) {
@@ -31,8 +34,10 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addIconUrl(solution)
 	addDiagramUrl(solution)
 	addIsSingleton(solution)
-	addOrgPolicyChecks(solution)
-	addCloudProductIdentifiers(solution)
+	addLocationConfigs(solution)
+	addOrgPolicyChecks(solution, bpObj)
+	addCloudProductIdentifiers(solution, bpObj)
+	addNeosWalkThroughLink(solution)
 
 	return solution, nil
 }
@@ -63,6 +68,10 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	solution.GitSource.Directory = solutionModulePath
 }
 
+func addNeosWalkThroughLink(solution *gen_protos.Solution) {
+	solution.NeosWalkthroughLink = "<Add NeosLink here>"
+}
+
 // addDeploymentTimeEstimate adds the deployment time for the solution to the
 // solution object from the BlueprintMetadata object.
 func addDeploymentTimeEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
@@ -82,6 +91,15 @@ func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintM
 	if bpObj.Spec.Info.CostEstimate.URL != "" {
 		solution.CostEstimateLink = bpObj.Spec.Info.CostEstimate.URL
 	}
+}
+
+func containsInList(element string, list []string) bool {
+	for _, member := range list {
+		if member == element {
+			return true
+		}
+	}
+	return false
 }
 
 // addRoles adds the roles required by the service account deploying the
@@ -105,6 +123,11 @@ func addRoles(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata
 			copy(solution.DeployData.Roles, bpRoles.Roles)
 		}
 	}
+	for _, role := range RequiredRoles {
+		if !containsInList(role, solution.DeployData.Roles) {
+			solution.DeployData.Roles = append(solution.DeployData.Roles, role)
+		}
+	}
 	return nil
 }
 
@@ -116,6 +139,11 @@ func addApis(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata)
 	}
 	solution.DeployData.Apis = make([]string, len(bpObj.Spec.Requirements.Services))
 	copy(solution.DeployData.Apis, bpObj.Spec.Requirements.Services)
+	for _, api := range RequiredApis {
+		if !containsInList(api, solution.DeployData.Apis) {
+			solution.DeployData.Apis = append(solution.DeployData.Apis, api)
+		}
+	}
 }
 
 // addVariables adds terraform input variables to the solution object from
@@ -206,22 +234,37 @@ func addIsSingleton(solution *gen_protos.Solution) {
 }
 
 // addOrgPolicyChecks adds org policy checks to the solution object.
-func addOrgPolicyChecks(solution *gen_protos.Solution) {
-	solution.DeployData.OrgPolicyChecks = []*gen_protos.OrgPolicyCheck{{
-		Id:             "<Org policy constraint e.g. constraints/gcp.resourceLocations>",
-		RequiredValues: []string{"<required value 1>", "<required value 2>"},
-	}}
+func addOrgPolicyChecks(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
+	solution.DeployData.OrgPolicyChecks = []*gen_protos.OrgPolicyCheck{}
+	for _, orgPolicy := range bpObj.Spec.Info.OrgPolicyChecks {
+		policy := &gen_protos.OrgPolicyCheck{
+			Id:             orgPolicy.PolicyId,
+			RequiredValues: orgPolicy.RequiredValues,
+		}
+		solution.DeployData.OrgPolicyChecks = append(solution.DeployData.OrgPolicyChecks, policy)
+	}
 }
 
 // addCloudProductIdentifiers adds cloud product identifiers to the solution
 // object.
-func addCloudProductIdentifiers(solution *gen_protos.Solution) {
-	solution.CloudProductIdentifiers = []*gen_protos.CloudProductIdentifier{{
-		Label: "<product label>",
-		ConsoleProductIdentifier: &gen_protos.ConsoleProductIdentifier{
-			SectionId:                   "<product section ID>",
-			PageId:                      "<product page ID>",
-			PageIdForPostDeploymentLink: "<product page ID for post deployment link>",
-		},
-	}}
+func addCloudProductIdentifiers(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
+
+	solution.CloudProductIdentifiers = []*gen_protos.CloudProductIdentifier{}
+	for _, cloudProduct := range bpObj.Spec.Info.CloudProducts {
+		cpIdentifier := &gen_protos.CloudProductIdentifier{
+			Label: cloudProduct.Label,
+			ConsoleProductIdentifier: &gen_protos.ConsoleProductIdentifier{
+				SectionId: cloudProduct.ProductId,
+			},
+		}
+		if len(cloudProduct.PageURL) > 0 {
+			if cloudProduct.IsExternal {
+				cpIdentifier.ConsoleProductIdentifier.PageId = cloudProduct.PageURL
+				cpIdentifier.ConsoleProductIdentifier.PageIdForPostDeploymentLink = cloudProduct.PageURL
+			} else {
+				cpIdentifier.ConsoleProductIdentifier.PageId = strings.ReplaceAll(cloudProduct.PageURL, "/", "_")
+			}
+		}
+		solution.CloudProductIdentifiers = append(solution.CloudProductIdentifiers, cpIdentifier)
+	}
 }
