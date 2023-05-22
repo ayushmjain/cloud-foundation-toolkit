@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
-output "id" {
-  value = github_team.collaborators_team.id
+/******************************************
+  Required variables
+*******************************************/
+
+variable "repos_map" {
+  description = "Map of Repos"
+  type = map(object({
+    name              = string
+    lint_env          = optional(map(string))
+    disable_lint_yaml = optional(bool)
+    enable_periodic   = optional(bool)
+  }))
+}
+
+variable "repo_list" {
+  description = "List of Repos"
+  type        = map(any)
 }

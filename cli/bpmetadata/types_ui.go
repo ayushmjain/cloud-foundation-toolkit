@@ -40,9 +40,12 @@ type DisplayVariable struct {
 	// Placeholder text (when there is no default).
 	Placeholder string `json:"placeholder,omitempty" yaml:"placeholder,omitempty"`
 
-	// Text describing the validation rules for the variable based
-	// on a regular expression.
-	// Typically shown after an invalid input.
+	// Text describing the validation rules for the property. Typically shown
+	// after an invalid input.
+	// Optional. UTF-8 text. No markup. At most 128 characters.
+	Validation string `json:"validation,omitempty" yaml:"validation,omitempty"`
+
+	// Regex based validation rules for the variable.
 	RegExValidation string `json:"regexValidation,omitempty" yaml:"regexValidation,omitempty"`
 
 	// Minimum no. of inputs for the input variable.
@@ -58,10 +61,10 @@ type DisplayVariable struct {
 	MaximumLength int `json:"maxLength,omitempty" yaml:"maxLength,omitempty"`
 
 	// Minimum value for numeric types.
-	Minimum int `json:"min,omitempty" yaml:"min,omitempty"`
+	Minimum float32 `json:"min,omitempty" yaml:"min,omitempty"`
 
 	// Max value for numeric types.
-	Maximum int `json:"max,omitempty" yaml:"max,omitempty"`
+	Maximum float32 `json:"max,omitempty" yaml:"max,omitempty"`
 
 	// The name of a section to which this variable belongs.
 	// variables belong to the root section if this field is

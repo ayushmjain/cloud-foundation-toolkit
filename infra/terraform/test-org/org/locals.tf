@@ -36,6 +36,7 @@ locals {
       gh_org      = repo.org
     }
   }
+  jss_common_group = "jump-start-solutions-admins"
 
   common_topics = {
     hcls       = "healthcare-life-sciences",
@@ -66,6 +67,7 @@ locals {
  *  topics            = "string1,string2,string3" (one or more of local.common_topics required if module = true)
  *  lint_env          = "map(string)" (optional)
  *  disable_lint_yaml = BOOL (optional, default is true)
+ *  enable_periodic   = BOOL (optional, if enabled runs a daily periodic test. Defaults to false )
  *
  */
 
@@ -116,8 +118,7 @@ locals {
       short_name  = "ecommerce-microservices"
       org         = "GoogleCloudPlatform"
       description = "Deploys a web-based ecommerce app into a multi-cluster Google Kubernetes Engine setup."
-      owners      = ["arbrown", "bourgeoisor", "donmccasland", "minherz", "NimJay", "Shabirmean"]
-      groups      = ["dee-platform-ops"]
+      groups      = ["dee-platform-ops", local.jss_common_group]
     },
     {
       name        = "terraform-example-java-dynamic-point-of-sale"
@@ -125,9 +126,9 @@ locals {
       org         = "GoogleCloudPlatform"
       description = "Deploys a dynamic Java webapp into a Google Kubernetes Engine cluster."
       owners      = ["shabirmean", "Mukamik"]
-      groups      = ["dee-platform-ops"]
+      groups      = ["dee-platform-ops", local.jss_common_group]
       lint_env = {
-        "EXCLUDE_HEADER_CHECK" = "\\./infra/modules/spanner/sql-schema"
+        "EXCLUDE_HEADER_CHECK" = "\\./infra/sql-schema"
       }
     },
     {
@@ -150,13 +151,16 @@ locals {
       description = "Stores and analyzes log data"
       owners      = ["ryotat7"]
       topics      = local.common_topics.da
+      groups      = [local.jss_common_group]
     },
     {
-      name        = "terraform-google-three-tier-web-app"
-      org         = "GoogleCloudPlatform"
-      description = "Deploys a three tier web application using Cloud Run and Cloud SQL"
-      owners      = ["tpryan"]
-      topics      = join(",", [local.common_topics.serverless, local.common_topics.db])
+      name            = "terraform-google-three-tier-web-app"
+      org             = "GoogleCloudPlatform"
+      description     = "Deploys a three tier web application using Cloud Run and Cloud SQL"
+      owners          = ["tpryan"]
+      topics          = join(",", [local.common_topics.serverless, local.common_topics.db])
+      groups          = [local.jss_common_group]
+      enable_periodic = true
     },
     {
       name        = "terraform-google-load-balanced-vms"
@@ -166,11 +170,13 @@ locals {
       topics      = local.common_topics.net
     },
     {
-      name        = "terraform-google-secure-cicd"
-      org         = "GoogleCloudPlatform"
-      description = "Builds a secure CI/CD pipeline on Google Cloud"
-      owners      = ["gtsorbo"]
-      topics      = join(",", [local.common_topics.security, local.common_topics.devtools, local.common_topics.e2e])
+      name            = "terraform-google-secure-cicd"
+      org             = "GoogleCloudPlatform"
+      description     = "Builds a secure CI/CD pipeline on Google Cloud"
+      owners          = ["gtsorbo"]
+      topics          = join(",", [local.common_topics.security, local.common_topics.devtools, local.common_topics.e2e])
+      enable_periodic = true
+      groups          = [local.jss_common_group]
     },
     {
       name        = "terraform-google-media-cdn-vod"
@@ -178,6 +184,7 @@ locals {
       description = "Deploys Media CDN video-on-demand"
       owners      = ["roddzurcher"]
       topics      = local.common_topics.ops
+      groups      = [local.jss_common_group]
     },
     {
       name        = "terraform-example-foundation-app"
@@ -384,9 +391,10 @@ locals {
       topics      = local.common_topics.db
     },
     {
-      name        = "terraform-google-module-template"
-      org         = "terraform-google-modules"
-      description = "Provides a template for creating a Cloud Foundation Toolkit Terraform module"
+      name              = "terraform-google-module-template"
+      org               = "terraform-google-modules"
+      description       = "Provides a template for creating a Cloud Foundation Toolkit Terraform module"
+      disable_lint_yaml = true
     },
     {
       name        = "terraform-google-network"
@@ -555,6 +563,7 @@ locals {
       description  = "Deploy a dynamic python webapp"
       owners       = ["glasnt", "donmccasland"]
       homepage_url = "avocano.dev"
+      groups       = [local.jss_common_group, "torus-dpe"]
     },
     {
       name        = "terraform-example-deploy-java-multizone"
@@ -562,6 +571,7 @@ locals {
       org         = "GoogleCloudPlatform"
       description = "Deploy a multizone Java application"
       owners      = ["donmccasland"]
+      groups      = [local.jss_common_group]
     },
     {
       name        = "terraform-google-itar-architectures"
@@ -582,6 +592,7 @@ locals {
       description = "Deploys a Lakehouse Architecture Solution"
       owners      = ["stevewalker-de"]
       topics      = local.common_topics.da
+      groups      = [local.jss_common_group]
     },
     {
       name        = "terraform-google-alloy-db"
@@ -603,6 +614,7 @@ locals {
       org         = "GoogleCloudPlatform"
       description = "Deploy a Legacy Java App GKE"
       owners      = ["donmccasland"]
+      groups      = [local.jss_common_group]
     },
     {
       name        = "terraform-google-crmint"
@@ -616,14 +628,29 @@ locals {
       short_name  = "large-data-sharing-java-app"
       org         = "GoogleCloudPlatform"
       description = "Deploys a large data sharing Java web app"
-      groups      = ["torus-dpe", "dee-platform-ops", "dee-data-ai"]
+      groups      = ["torus-dpe", "dee-platform-ops", "dee-data-ai", local.jss_common_group]
     },
     {
       name        = "terraform-large-data-sharing-golang-webapp"
       short_name  = "large-data-sharing-go-app"
       org         = "GoogleCloudPlatform"
       description = "Deploys a large data sharing Golang web app"
-      groups      = ["torus-dpe", "dee-platform-ops", "dee-data-ai"]
+      groups      = ["torus-dpe", "dee-platform-ops", "dee-data-ai", local.jss_common_group]
+    },
+    {
+      name        = "terraform-ml-image-annotation-gcf"
+      short_name  = "ml-image-annotation-gcf"
+      org         = "GoogleCloudPlatform"
+      description = "Deploys an app for ml image annotation using gcf"
+      owners      = ["xsxm", "ivanmkc", "balajismaniam", "donmccasland"]
+      groups      = ["dee-data-ai", local.jss_common_group]
+    },
+    {
+      name        = "terraform-google-out-of-band-security"
+      org         = "GoogleCloudPlatform"
+      description = "Creates a 3P out-of-band security appliance deployment"
+      owners      = ["Saipriyavk", "ChrisBarefoot"]
+      topics      = local.common_topics.net
     },
   ]
 }
