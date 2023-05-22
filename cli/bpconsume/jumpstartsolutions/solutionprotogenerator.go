@@ -30,12 +30,12 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addVariables(solution, bpObj, bpDpObj)
 	addOutputs(solution, bpObj)
 	addDocumentationLink(solution, bpObj)
+	addIsSingleton(solution, bpObj)
+	addOrgPolicyChecks(solution, bpObj)
+	addCloudProductIdentifiers(solution, bpObj)
 
 	addIconUrl(solution)
 	addDiagramUrl(solution)
-	addIsSingleton(solution)
-	addOrgPolicyChecks(solution, bpObj)
-	addCloudProductIdentifiers(solution, bpObj)
 	addNeosWalkThroughLink(solution)
 
 	return solution, nil
@@ -227,9 +227,8 @@ func addDiagramUrl(solution *gen_protos.Solution) {
 }
 
 // addIsSingleton adds whether the solution is a singleton or not.
-func addIsSingleton(solution *gen_protos.Solution) {
-	// TODO: use this from blueprint metadata when this is available in it.
-	solution.DeployData.IsSingleton = true
+func addIsSingleton(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
+	solution.DeployData.IsSingleton = bpObj.Spec.Info.SingleDeployment
 }
 
 // addOrgPolicyChecks adds org policy checks to the solution object.
