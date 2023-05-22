@@ -34,7 +34,6 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 	addIconUrl(solution)
 	addDiagramUrl(solution)
 	addIsSingleton(solution)
-	addLocationConfigs(solution)
 	addOrgPolicyChecks(solution, bpObj)
 	addCloudProductIdentifiers(solution, bpObj)
 	addNeosWalkThroughLink(solution)
