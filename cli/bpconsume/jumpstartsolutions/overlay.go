@@ -11,7 +11,7 @@ import (
 // addOverlay reads the overlay.textproto file and overrides the given
 // fields in the solution object.
 func addOverlay(solution *gen_protos.Solution) error {
-	b, err := os.ReadFile("overlay.textproto")
+	b, err := os.ReadFile(jssConsumptionFlags.overlayPath)
 
 	// don't override the solution object if the overlay file doesn't exist
 	if errors.Is(err, os.ErrNotExist) {

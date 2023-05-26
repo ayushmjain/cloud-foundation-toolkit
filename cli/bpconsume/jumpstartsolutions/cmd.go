@@ -17,13 +17,15 @@ const (
 )
 
 var jssConsumptionFlags struct {
-	bpPath string
+	bpPath      string
+	overlayPath string
 }
 
 func init() {
 	viper.AutomaticEnv()
 
-	Cmd.Flags().StringVarP(&jssConsumptionFlags.bpPath, "path", "p", ".", "path to blueprint for metadata consumption")
+	Cmd.Flags().StringVarP(&jssConsumptionFlags.bpPath, "metadata_path", "m", ".", "path to the directory containing metadata.yaml for consumption")
+	Cmd.Flags().StringVarP(&jssConsumptionFlags.overlayPath, "overlay_path", "o", ".", "path to the overlay.textproto file")
 }
 
 var Cmd = &cobra.Command{
