@@ -33,6 +33,7 @@ func addOverlay(solution *gen_protos.Solution) error {
 	overrideLocationConfigs(solution, overlaySolution)
 	overrideCostEstimate(solution, overlaySolution)
 	overrideGitSource(solution, overlaySolution)
+	overrideNeosWalkthroughId(solution, overlaySolution)
 
 	return nil
 }
@@ -88,4 +89,13 @@ func overrideGitSource(solution, overlaySolution *gen_protos.Solution) {
 	if len(overlaySolution.GitSource.Directory) > 0 {
 		solution.GitSource.Directory = overlaySolution.GitSource.Directory
 	}
+}
+
+// overrideNeosWalkthroughId overrides the neos walkthrough ID of the solution
+// object as per the overlaySolution object.
+func overrideNeosWalkthroughId(solution, overlaySolution *gen_protos.Solution) {
+	if overlaySolution.NeosWalkthroughId == "" {
+		return
+	}
+	solution.NeosWalkthroughId = overlaySolution.NeosWalkthroughId
 }

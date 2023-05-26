@@ -24,8 +24,8 @@ message Solution {
   // Monthly cost estimate for the solution from the GCP pricing calculator.
   double cost_estimate_usd = 17;
 
-  // Link to Neos tutorial
-  string neos_walkthrough_link = 20;
+  // Neos tutorial ID
+  string neos_walkthrough_id = 20;
 
   // List of products used in this solution.
   repeated CloudProductIdentifier cloud_product_identifiers = 15;
