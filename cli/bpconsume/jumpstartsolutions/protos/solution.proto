@@ -55,13 +55,13 @@ message DeploymentEstimate {
   int32 deployment_minutes = 2;
 }
 
-message Section {
+message ConfigurationSection {
   // List of properties that belong to that section
-  repeated Property properties = 6;
+  repeated ConfigurationProperty properties = 6;
 }
 
 // Information pertaining to one property displayed in the Config UI.
-message Property {
+message ConfigurationProperty {
   // The name (unique) of the property.
   string name = 1;
 
@@ -130,7 +130,7 @@ message ConsoleProductIdentifier {
 
 message DeployData {
   // Solution-specific form inputs.
-  repeated Section input_sections = 6;
+  repeated ConfigurationSection configuration_sections = 6;
 
   // Links to show in the deployments table.
   repeated DeploymentLink links = 3;

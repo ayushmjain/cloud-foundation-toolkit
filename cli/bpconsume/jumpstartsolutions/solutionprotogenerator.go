@@ -146,10 +146,10 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 	if len(bpObj.Spec.Interfaces.Variables) == 0 {
 		return
 	}
-	solution.DeployData.InputSections = []*gen_protos.Section{}
+	solution.DeployData.ConfigurationSections = []*gen_protos.ConfigurationSection{}
 	for _, variable := range bpObj.Spec.Interfaces.Variables {
 		bpVariable := bpDpObj.Spec.UI.Input.Variables[variable.Name]
-		property := &gen_protos.Property{
+		property := &gen_protos.ConfigurationProperty{
 			Name:       variable.Name,
 			IsRequired: variable.Required,
 			IsHidden:   bpVariable.Invisible,
@@ -157,7 +157,7 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 		}
 		switch variable.VarType {
 		case "string":
-			property.Type = gen_protos.Property_STRING
+			property.Type = gen_protos.ConfigurationProperty_STRING
 			if variable.DefaultValue != nil {
 				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
@@ -166,26 +166,26 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 			property.MinLength = int32(bpVariable.Minimum)
 
 		case "bool":
-			property.Type = gen_protos.Property_BOOLEAN
+			property.Type = gen_protos.ConfigurationProperty_BOOLEAN
 			if variable.DefaultValue != nil {
 				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
 		case "list":
-			property.Type = gen_protos.Property_ARRAY
+			property.Type = gen_protos.ConfigurationProperty_ARRAY
 			property.MaxItems = int32(bpVariable.Maximum)
 			property.MinItems = int32(bpVariable.Minimum)
 		case "number":
 			// Note: tf metadata uses "number" type for both "integer" and "number" type.
 			// Hence, this might require manual update of textproto file.
-			property.Type = gen_protos.Property_NUMBER
+			property.Type = gen_protos.ConfigurationProperty_NUMBER
 			if variable.DefaultValue != nil {
 				property.DefaultValue = fmt.Sprintf("%v", variable.DefaultValue)
 			}
 			property.Maximum = float32(bpVariable.Maximum)
 			property.Minimum = float32(bpVariable.Minimum)
 		}
-		solution.DeployData.InputSections = append(solution.DeployData.InputSections, &gen_protos.Section{
-			Properties: []*gen_protos.Property{property},
+		solution.DeployData.ConfigurationSections = append(solution.DeployData.ConfigurationSections, &gen_protos.ConfigurationSection{
+			Properties: []*gen_protos.ConfigurationProperty{property},
 		})
 	}
 }
