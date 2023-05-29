@@ -36,7 +36,6 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 
 	addIconUrl(solution)
 	addDiagramUrl(solution)
-	addNeosWalkThroughLink(solution)
 
 	return solution, nil
 }
@@ -65,10 +64,6 @@ func addGitSource(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMeta
 	}
 
 	solution.GitSource.Directory = solutionModulePath
-}
-
-func addNeosWalkThroughLink(solution *gen_protos.Solution) {
-	solution.NeosWalkthroughLink = "<Add NeosLink here>"
 }
 
 // addDeploymentTimeEstimate adds the deployment time for the solution to the
