@@ -16,6 +16,16 @@ const (
 	soyLineSeparator         = "  {\\n}\n"
 )
 
+type JSSTextFields struct {
+	solutionName               string
+	solutionId                 string
+	solutionTitle              string
+	solutionSummary            string
+	solutionDescription        string
+	solutionDiagramSteps       []string
+	solutionDiagramDescription string
+}
+
 func generateSolutionId(solutionName string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(solutionName), "-", "_"), " ", "_")
 }
@@ -35,26 +45,32 @@ func createDiagramDescription(steps []string, solutionName string) string {
 }
 
 func generateSoy(bpObj *bpmetadata.BlueprintMetadata) error {
-	solutionName := bpObj.Spec.Info.Title
-	solutionId := generateSolutionId(solutionName)
-	ingestionSolutionId := generateReadableSolutionId(solutionId)
-	solutionTitle := bpObj.Spec.Info.Title
-	solutionSummary := bpObj.Spec.Info.Description.Tagline
-	solutionDescription := bpObj.Spec.Info.Description.Detailed
-	solutionDiagramSteps := bpObj.Spec.Info.Description.Architecture
-	if len(solutionDiagramSteps) == 0 {
-		solutionDiagramSteps = bpObj.Spec.Content.Architecture.Description
-	}
-	solutionDiagramDescription := createDiagramDescription(solutionDiagramSteps, solutionName)
+	textFields := &JSSTextFields{}
+	textFields.solutionName = bpObj.Spec.Info.Title
+	textFields.solutionId = generateSolutionId(textFields.solutionName)
+	ingestionSolutionId := generateReadableSolutionId(textFields.solutionId)
+	textFields.solutionTitle = bpObj.Spec.Info.Title
+	textFields.solutionSummary = bpObj.Spec.Info.Description.Tagline
+	textFields.solutionDescription = bpObj.Spec.Info.Description.Detailed
 
-	replacer := strings.NewReplacer("$INGESTION_ID", ingestionSolutionId, "$SOLUTION_ID", solutionId, "$SOLUTION_NAME", solutionName, "$SOLUTION_TITLE", solutionTitle, "$SOLUTION_SUMMARY", solutionSummary, "$SOLUTION_DESCRIPTION", solutionDescription, "$DIAGRAM_DESCRIPTION", solutionDiagramDescription)
+	if len(bpObj.Spec.Info.Description.Architecture) == 0 {
+		textFields.solutionDiagramSteps = bpObj.Spec.Content.Architecture.Description
+	} else {
+		textFields.solutionDiagramSteps = bpObj.Spec.Info.Description.Architecture
+	}
+	solutionDiagramDescription := createDiagramDescription(textFields.solutionDiagramSteps, textFields.solutionName)
+
+	if err := validateTextFields(textFields); err != nil {
+		return err
+	}
+	replacer := strings.NewReplacer("$INGESTION_ID", ingestionSolutionId, "$SOLUTION_ID", textFields.solutionId, "$SOLUTION_NAME", textFields.solutionName, "$SOLUTION_TITLE", textFields.solutionTitle, "$SOLUTION_SUMMARY", textFields.solutionSummary, "$SOLUTION_DESCRIPTION", textFields.solutionDescription, "$DIAGRAM_DESCRIPTION", solutionDiagramDescription)
 
 	input, err := ioutil.ReadFile("soy_template.soy")
 	if err != nil {
 		return err
 	}
 	output := replacer.Replace(string(input))
-	fileName := solutionId + ".soy"
+	fileName := textFields.solutionId + ".soy"
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return err

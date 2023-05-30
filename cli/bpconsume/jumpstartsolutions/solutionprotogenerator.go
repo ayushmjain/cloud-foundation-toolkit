@@ -36,6 +36,9 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 
 	addIconUrl(solution)
 	addDiagramUrl(solution)
+	if err := validateSolutionProto(solution); err != nil {
+		return nil, err
+	}
 
 	return solution, nil
 }
