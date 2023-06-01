@@ -25,9 +25,6 @@ func validateTextFields(textFields *JSSTextFields) error {
 	if len(textFields.solutionSummary) == 0 {
 		invalidFields = append(invalidFields, "solutionSummary")
 	}
-	if len(textFields.solutionDiagramDescription) == 0 {
-		invalidFields = append(invalidFields, "solutionDiagramDescription")
-	}
 	if len(textFields.solutionDiagramSteps) == 0 {
 		invalidFields = append(invalidFields, "solutionDiagramSteps")
 	}

@@ -69,7 +69,9 @@ func consumeMetadata(bpPath string) error {
 	if err != nil {
 		return err
 	}
-
+	if bpObj == nil || bpDpObj == nil {
+		return fmt.Errorf("Cannot find the metadata in specified repository path");
+	}
 	err = generateSoyFile(bpObj)
 	if err != nil {
 		return err
