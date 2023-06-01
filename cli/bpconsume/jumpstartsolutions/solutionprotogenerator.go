@@ -8,9 +8,9 @@ import (
 	"github.com/GoogleCloudPlatform/cloud-foundation-toolkit/cli/bpmetadata"
 )
 
-var RequiredRoles = [...]string{"roles/serviceusage.serviceUsageAdmin", "roles/iam.serviceAccountAdmin", "roles/resourcemanager.projectIamAdmin"}
-var RequiredApis = [...]string{"config.googleapis.com"}
-
+var RequiredRoles = []string{"roles/serviceusage.serviceUsageAdmin", "roles/iam.serviceAccountAdmin", "roles/resourcemanager.projectIamAdmin"}
+var RequiredApis = []string{"config.googleapis.com"}
+var DefaultInputs = []string{"project_id", "region", "labels"}
 // generateSolutionProto creates the Solution object from the BlueprintMetadata
 // object.
 func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_protos.Solution, error) {
@@ -151,6 +151,10 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 	}
 	solution.DeployData.ConfigurationSections = []*gen_protos.ConfigurationSection{}
 	for _, variable := range bpObj.Spec.Interfaces.Variables {
+		if containsInList(variable.Name, DefaultInputs) || !variable.Required {
+			//skipping the default and non-required inputs
+			continue
+		}
 		bpVariable := bpDpObj.Spec.UI.Input.Variables[variable.Name]
 		property := &gen_protos.ConfigurationProperty{
 			Name:       variable.Name,
