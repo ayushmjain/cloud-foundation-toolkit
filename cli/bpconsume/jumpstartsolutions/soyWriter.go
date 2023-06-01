@@ -17,13 +17,12 @@ const (
 )
 
 type JSSTextFields struct {
-	solutionName               string
-	solutionId                 string
-	solutionTitle              string
-	solutionSummary            string
-	solutionDescription        string
-	solutionDiagramSteps       []string
-	solutionDiagramDescription string
+	solutionName         string
+	solutionId           string
+	solutionTitle        string
+	solutionSummary      string
+	solutionDescription  string
+	solutionDiagramSteps []string
 }
 
 func generateSolutionId(solutionName string) string {
