@@ -60,9 +60,6 @@ func validateSolutionProto(solution *gen_protos.Solution) error {
 		if len(solution.DeployData.Links) == 0 {
 			invalidFields = append(invalidFields, "Outputs")
 		}
-		if len(solution.DeployData.ConfigurationSections) == 0 {
-			invalidFields = append(invalidFields, "Inputs")
-		}
 	}
 	if len(invalidFields) > 0 {
 		return fmt.Errorf("These fields are missing or empty : " + strings.Join(invalidFields[:], ","))

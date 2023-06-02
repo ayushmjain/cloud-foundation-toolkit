@@ -17,8 +17,9 @@ const (
 )
 
 var jssConsumptionFlags struct {
-	bpPath      string
-	overlayPath string
+	bpPath             string
+	overlayPath        string
+	overrideSolutionId string
 }
 
 func init() {
@@ -26,6 +27,7 @@ func init() {
 
 	Cmd.Flags().StringVarP(&jssConsumptionFlags.bpPath, "metadata_path", "m", ".", "path to the directory containing metadata.yaml for consumption")
 	Cmd.Flags().StringVarP(&jssConsumptionFlags.overlayPath, "overlay_path", "o", ".", "path to the overlay.textproto file")
+	Cmd.Flags().StringVarP(&jssConsumptionFlags.overrideSolutionId, "override_solution_id", "s", "", "solutionId to use instead of generating from solution name")
 }
 
 var Cmd = &cobra.Command{
@@ -70,7 +72,7 @@ func consumeMetadata(bpPath string) error {
 		return err
 	}
 	if bpObj == nil || bpDpObj == nil {
-		return fmt.Errorf("Cannot find the metadata in specified repository path");
+		return fmt.Errorf("Cannot find the metadata in specified repository path")
 	}
 	err = generateSoyFile(bpObj)
 	if err != nil {

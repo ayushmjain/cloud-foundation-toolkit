@@ -26,6 +26,9 @@ type JSSTextFields struct {
 }
 
 func generateSolutionId(solutionName string) string {
+	if len(jssConsumptionFlags.overrideSolutionId) != 0 {
+		return jssConsumptionFlags.overrideSolutionId
+	}
 	return strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(solutionName), "-", "_"), " ", "_")
 }
 
