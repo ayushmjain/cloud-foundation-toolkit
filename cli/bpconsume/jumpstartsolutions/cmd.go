@@ -17,9 +17,9 @@ const (
 )
 
 var jssConsumptionFlags struct {
-	bpPath             string
-	overlayPath        string
-	overrideSolutionId string
+	bpPath      string
+	overlayPath string
+	solutionId  string
 }
 
 func init() {
@@ -27,7 +27,7 @@ func init() {
 
 	Cmd.Flags().StringVarP(&jssConsumptionFlags.bpPath, "metadata_path", "m", ".", "path to the directory containing metadata.yaml for consumption")
 	Cmd.Flags().StringVarP(&jssConsumptionFlags.overlayPath, "overlay_path", "o", ".", "path to the overlay.textproto file")
-	Cmd.Flags().StringVarP(&jssConsumptionFlags.overrideSolutionId, "override_solution_id", "s", "", "solutionId to use instead of generating from solution name")
+	Cmd.Flags().StringVarP(&jssConsumptionFlags.solutionId, "solution_id", "s", "", "solutionId to use instead of generating from solution name")
 }
 
 var Cmd = &cobra.Command{
