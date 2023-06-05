@@ -2,6 +2,7 @@ package jumpstartsolutions
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	gen_protos "github.com/GoogleCloudPlatform/cloud-foundation-toolkit/cli/bpconsume/jumpstartsolutions/gen-protos"
@@ -11,6 +12,7 @@ import (
 var RequiredRoles = []string{"roles/serviceusage.serviceUsageAdmin", "roles/iam.serviceAccountAdmin", "roles/resourcemanager.projectIamAdmin"}
 var RequiredApis = []string{"config.googleapis.com"}
 var DefaultInputs = []string{"project_id", "region", "labels"}
+
 // generateSolutionProto creates the Solution object from the BlueprintMetadata
 // object.
 func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_protos.Solution, error) {
@@ -87,6 +89,10 @@ func addDeploymentTimeEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.
 func addCostEstimate(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
 	if bpObj.Spec.Info.CostEstimate.URL != "" {
 		solution.CostEstimateLink = bpObj.Spec.Info.CostEstimate.URL
+	}
+	solution.CostEstimateUsd = float64(-1)
+	if strings.HasPrefix(bpObj.Spec.Info.CostEstimate.Description, "cost of this solution is $") {
+		solution.CostEstimateUsd, _ = strconv.ParseFloat(strings.TrimPrefix(bpObj.Spec.Info.CostEstimate.Description, "cost of this solution is $"), 64)
 	}
 }
 
@@ -213,8 +219,12 @@ func addOutputs(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetada
 
 // addDocumentationLink adds the URL of the solution's documentation page.
 func addDocumentationLink(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
-	if len(bpObj.Spec.Content.Documentation) > 0 {
-		solution.DocumentationLink = bpObj.Spec.Content.Documentation[0].URL
+	for _, documentation := range bpObj.Spec.Content.Documentation {
+		if strings.ReplaceAll(strings.ToLower(documentation.Title), " ", "_") == "landing_page" {
+			solution.DocumentationLink = documentation.URL
+		} else if strings.ReplaceAll(strings.ToLower(documentation.Title), " ", "_") == "tutorial_walkthrough_id" {
+			solution.NeosWalkthroughId = documentation.URL
+		}
 	}
 }
 
@@ -267,4 +277,39 @@ func addCloudProductIdentifiers(solution *gen_protos.Solution, bpObj *bpmetadata
 		}
 		solution.CloudProductIdentifiers = append(solution.CloudProductIdentifiers, cpIdentifier)
 	}
+	addLocationConfig(solution)
+}
+func addLocationConfig(solution *gen_protos.Solution) {
+	for _, cloudProduct := range solution.CloudProductIdentifiers {
+		switch cloudProduct.ConsoleProductIdentifier.SectionId {
+
+		case "BIGQUERY_SECTION_transfers":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_BIGQUERY_DATA_TRANSFER)
+			break
+		case "CLOUD_BUILD_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_CLOUD_BUILD)
+			break
+		case "CLOUD_DEPLOY_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_CLOUD_DEPLOY)
+			break
+		case "FUNCTIONS_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_CLOUD_FUNCTIONS_V2)
+			break
+		case "CACHE_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_CLOUD_MEMORYSTORE)
+			break
+		case "SERVERLESS_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_CLOUD_RUN)
+			break
+		case "COMPUTE_SECTION":
+			solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_COMPUTE)
+			break
+		default:
+			if strings.Contains(cloudProduct.ConsoleProductIdentifier.SectionId, "BIGQUERY") {
+				solution.DeployData.LocationConfigs = append(solution.DeployData.LocationConfigs, gen_protos.DeployData_BIGQUERY_DATASET)
+			}
+			break
+		}
+	}
+
 }
