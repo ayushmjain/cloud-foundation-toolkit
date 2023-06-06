@@ -30,7 +30,7 @@ func generateSolutionProto(bpObj, bpDpObj *bpmetadata.BlueprintMetadata) (*gen_p
 
 	addApis(solution, bpObj)
 	addVariables(solution, bpObj, bpDpObj)
-	addOutputs(solution, bpObj)
+	addOutputs(solution, bpObj, bpDpObj)
 	addDocumentationLink(solution, bpObj)
 	addIsSingleton(solution, bpObj)
 	addOrgPolicyChecks(solution, bpObj)
@@ -205,15 +205,21 @@ func addVariables(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.Blue
 
 // addOutputs adds terraform outputs to the solution object from the
 // BlueprintMetadata object.
-func addOutputs(solution *gen_protos.Solution, bpObj *bpmetadata.BlueprintMetadata) {
+func addOutputs(solution *gen_protos.Solution, bpObj, bpDpObj *bpmetadata.BlueprintMetadata) {
 	if len(bpObj.Spec.Interfaces.Outputs) == 0 {
 		return
 	}
 	solution.DeployData.Links = []*gen_protos.DeploymentLink{}
 	for _, link := range bpObj.Spec.Interfaces.Outputs {
-		solution.DeployData.Links = append(solution.DeployData.Links, &gen_protos.DeploymentLink{
+		solutionOutput := bpDpObj.Spec.UI.Runtime.Outputs[link.Name]
+		deploymentLink := &gen_protos.DeploymentLink{
 			OutputName: link.Name,
-		})
+		}
+		if &solutionOutput != nil {
+			deploymentLink.OpenInNewTab = solutionOutput.OpenInNewTab
+			deploymentLink.ShowInNotification = solutionOutput.ShowInNotification
+		}
+		solution.DeployData.Links = append(solution.DeployData.Links, deploymentLink)
 	}
 }
 
